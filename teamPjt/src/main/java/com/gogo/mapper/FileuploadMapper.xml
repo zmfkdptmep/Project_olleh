@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  				<!-- 경로 + xml 파일명 -->
+<mapper namespace="com.gogo.mapper.FileuploadMapper">
+	
+	<insert id="insert">
+		insert into attach (uuid, uploadpath, filename, stayno, roomno, memberid)
+		values (#{uuid}, #{uploadPath}, #{fileName}, #{stayNo}, #{roomNo}, #{memberId})
+	</insert>
+	
+	<!-- 스테이 사진  -->
+	<select id="getStayPhotoList" resultType="com.gogo.vo.FileuploadVO">
+		select t.*
+					, uploadpath||uuid||'_'||filename savePath
+					, uploadpath||'s_'||uuid||'_'||filename s_savePath
+		from attach t 
+		where stayno = #{stayNo} 
+		and roomno is null
+	</select>
+	
+	<!-- 업데이트 할 게 아니라 삭제 후 업로드인가? -->
+	<update id="updateStayPhoto">
+		update attach
+		set uuid = #{uuid}
+		, uploadpath = #{uploadPath}
+		, filename = #{fileName}
+	</update>
+
+	<delete id="deleteStayPhoto">
+		delete attach
+		where stayno = #{stayNo}
+		and roomno is null
+	</delete>
+	
+	<select id="getRoomPhotoList" resultType="com.gogo.vo.FileuploadVO">
+		select t.*
+					, uploadpath||uuid||'_'||filename savePath
+					, uploadpath||'s_'||uuid||'_'||filename s_savePath
+		from attach t 
+		where roomno = #{roomNo}
+	</select>
+	
+	<delete id="deleteRoomPhoto">
+		delete attach
+		where roomno = #{roomNo}
+	</delete>
+
+</mapper>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gogo.mapper.ReservedMapper">
+	
+	<insert id="insertReserved">
+		insert into reservation 
+		values(#{reservationNo}, #{roomNo}, #{memberId}, sysdate, #{checkIn}, #{checkOut}, #{memberCount}, #{talk})
+	</insert>
+	
+	<select id="selectOne_room" resultType="com.gogo.vo.RoomVO">
+		select * from Room where roomNo = #{roomNo}
+	</select>
+		
+	<select id="selectOne_stay" resultType="com.gogo.vo.StayVO">
+		select * from Stay where stayNo = #{stayNo}
+	</select>
+	
+	<select id="selectOne_reservation" resultType="com.gogo.vo.ReservedVO">
+		select * from reservation where reservationNo = #{reservationNo}
+	</select>
+		
+	<select id="reservedDay" resultType="String">
+		select checkOut-checkIn from reservation where reservationNo = #{reservationNo}
+	</select>
+	
+	<select id="reservedDay2" resultType="String">
+		select to_date('${checkOut}')- to_date('${checkIn}') from dual
+	</select>
+	
+	<select id="getReservationNo" resultType="String">
+		select reservationseq.nextval from dual
+	</select>
+	
+	<select id="getReservedList" resultType="String">
+        <![CDATA[
+			SELECT TO_CHAR(R.checkIn + LEVEL - 1, 'YYYYMMDD') AS date_between
+			FROM RESERVATION R
+			JOIN PAYMENT P ON R.reservationNo = P.reservationNo
+			WHERE R.roomNo = #{roomNo}
+			AND P.cancleYN = 'N'
+			CONNECT BY LEVEL <= (R.checkOut - R.checkIn + 1)
+			AND PRIOR SYS_GUID() IS NOT NULL
+			AND PRIOR R.checkIn = R.checkIn
+			AND PRIOR R.reservationNo = R.reservationNo
+			START WITH R.roomNo = #{roomNo}
+			ORDER BY date_between
+        ]]>
+	</select>
+
+</mapper>

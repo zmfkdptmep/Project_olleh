@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:websocket="http://www.springframework.org/schema/websocket"
+	xsi:schemaLocation="http://www.springframework.org/schema/websocket http://www.springframework.org/schema/websocket/spring-websocket-4.3.xsd
+		http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+	
+	<!-- Root Context: defines shared resources visible to all other web components -->
+	<!-- / 해당 패키지에 있는 클래스들 중에서 @Component등의 어노테이션이 존재하는 클래스의 인스턴스를 생성한다. -->
+	<context:component-scan base-package="com.gogo.service"></context:component-scan>
+	<context:component-scan base-package="com.gogo.exception"></context:component-scan>
+	<context:component-scan base-package="com.gogo.aop"></context:component-scan>
+	
+	<!-- / 라이브러리로 받아온 객체를 spring에서 인스턴스로 생성해주기 위해서는 bean으로 등록해주어야 한다. -->
+	<bean id="hikariConfig" class="com.zaxxer.hikari.HikariConfig">
+		<property name="driverClassName" value="net.sf.log4jdbc.sql.jdbcapi.DriverSpy"></property>
+		<property name="jdbcUrl" value="jdbc:log4jdbc:oracle:thin:@localhost:1521:orcl"></property>
+		<property name="username" value="TEAM"></property>
+		<property name="password" value="1234">	</property>
+	</bean>
+	
+	<bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
+	  <constructor-arg ref="hikariConfig"></constructor-arg>
+	</bean>
+
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	
+	<mybatis-spring:scan base-package="com.gogo.mapper"/>
+
+	<!-- File Upload 를 위한 세팅 -->
+	<!-- commons-fileupload, io 를 maven 세팅 필요 -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+	    <property name="defaultEncoding" value="utf-8"></property>
+	    <!-- 1024 * 1024 * 10 bytes  10MB -->  <!-- / 전체 요청에 대한 최대 업로드 파일 크기 -->
+	    <property name="maxUploadSize" value="104857560"></property>
+	    <!-- 1024 * 1024 * 2 bytes  2MB --> <!-- / 개별 파일 업로드 파일 크기-->
+	    <property name="maxUploadSizePerFile" value="20971520"></property>
+	    <property name="uploadTempDir" value ="file:/C:/upload/tmp"></property>
+	    <property name="maxInMemorySize" value="10485756"></property>
+	</bean>
+
+	<!-- / 멤버 비밀번호 암호화를 위한 라이브러리 -->
+	<bean id="bcryptPasswordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"></bean>
+	
+	<aop:aspectj-autoproxy></aop:aspectj-autoproxy>
+	
+	<!-- / 트랜잭션 처리를 위한 bean -->
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+
+	
+	
+	
+	<tx:annotation-driven />
+</beans>

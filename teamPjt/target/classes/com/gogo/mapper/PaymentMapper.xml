@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gogo.mapper.PaymentMapper">
+
+	<insert id="insertPayment">
+		insert into payment (paymentNo, reservationNo, regDate, paymentMethod, impUid, amount) 
+		values (#{paymentNo}, #{reservationNo}, sysdate, #{paymentMethod}, #{impUid}, #{amount})
+	</insert>
+	
+	<select id="selectOne" resultType="com.gogo.vo.PaymentVO">
+		select * from payment where impUid = #{impUid}
+	</select>
+	
+	<select id="selectOne_payment_reservationNo" resultType="com.gogo.vo.PaymentVO">
+		select * from payment where reservationNo = #{reservationNo}
+	</select>
+	
+	
+	<select id="getUid" resultType="String">
+		select paymentseq.nextval from dual
+	</select>
+	
+	<update id="updateError">
+		update payment set errorCode = #{errorCode}, error_Msg = #{error_Msg}
+		where impUid = #{impUid} 
+	</update>
+	
+	<update id="updateCancle">
+		update payment set cancleYN = 'Y' where impUid = #{impUid}
+	</update>
+</mapper>

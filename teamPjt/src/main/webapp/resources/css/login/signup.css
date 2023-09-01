@@ -1,0 +1,259 @@
+@charset "UTF-8";
+
+/*버튼 사이 간격*/
+.sns_login>ul li {
+    display: inline-block;
+    margin: 0 10px; /* 여백 추가 (왼쪽과 오른쪽에 10px씩) */
+
+}
+.sns_login>ul {
+    display: flex;
+    margin: 40px 30px 0px
+}
+
+.blinking{
+  -webkit-animation:blink 1.0s ease-in-out infinite alternate;
+  -moz-animation:blink 1.0s ease-in-out infinite alternate;
+    animation:blink 1.0s ease-in-out infinite alternate;
+
+  
+  color:red;
+}
+@-webkit-keyframes blink{
+  0% {opacity:0;}
+  100% {opacity:1;}
+}
+@-moz-keyframes blink{
+  0% {opacity:0;}
+  100% {opacity:1;}
+}
+@keyframes blink{
+  0% {opacity:0;}
+  100% {opacity:1;}
+}
+
+
+/* SECTION - BIRTH */
+.info#info__birth {
+	display: flex;
+}
+
+.info#info__birth select {
+	margin-left: 7px;
+}
+
+.info#info__birth select:first-child {
+	margin-left: 0;
+}
+
+.info#info__birth select::-webkit-scrollbar {
+	width: 10px;
+}
+
+.info#info__birth select::-webkit-scrollbar-thumb {
+	background-color: #b6b6b6;
+	border-radius: 3px;
+}
+
+.info#info__birth select::-webkit-scrollbar-track {
+	background-color: #ebe9e9;
+	border-radius: 6px;
+}
+
+/* select.box {
+	width: 80%;
+	height: 40px;
+	box-sizing: border-box;
+	margin-left: 3px;
+	padding: 2px 0 5px 6px;
+	border-radius: 4px;
+	border: 1px solid #d9d6d6;
+	color: #383838;
+	background-color: #ffffff;
+	font-family: 'Montserrat', 'Pretendard', sans-serif;
+} */
+select.box {
+	width: 100%;
+	height: 40px;
+	box-sizing: border-box;
+	margin-left: 5px;
+	padding: 5px 0 5px 10px;
+	border-radius: 4px;
+	border: 1px solid #d9d6d6;
+	color: #383838;
+	background-color: #ffffff;
+	font-family: 'Montserrat', 'Pretendard', sans-serif;
+}
+
+option {
+	font-size: 16px;
+}
+
+.info .box#domain-list option {
+	font-size: 14px;
+	background-color: #ffffff;
+}
+/* 라디오 버튼 컨테이너 스타일 설정 */
+#genderForm {
+	display: flex;
+	align-items: center;
+}
+
+/* 라디오 버튼 스타일 설정 */
+#genderForm input[type="radio"] {
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	margin-right: 10px;
+	border: 1px solid #ccc;
+	border-radius: 50%;
+	cursor: pointer;
+}
+
+/* 라디오 버튼 선택 시 스타일 설정 */
+#genderForm input[type="radio"]:checked {
+	background-color: #007bff;
+}
+/* 체크박스 스타일 */
+#hostCheckbox {
+	/* 체크박스 크기 설정 */
+	width: 20px;
+	height: 20px;
+	/* 체크박스 배경색과 테두리 설정 */
+	background-color: #fff;
+	border: 1px solid #999;
+	/* 체크박스 체크 표시 모양 설정 */
+	border-radius: 4px;
+}
+
+/* 체크박스 체크 표시 스타일 */
+#hostCheckbox:checked {
+	background-color: #999;
+}
+
+/* 라벨 스타일 (체크박스와 텍스트 정렬) */
+label {
+	display: flex;
+	align-items: center;
+}
+
+
+
+option {
+	font-size: 16px;
+}
+
+.info .box#domain-list option {
+	font-size: 14px;
+	background-color: #ffffff;
+}
+
+/* 이메일박스 */
+.box{
+	border-radius: 4px;
+}
+table tr td {
+	text-align: left;
+}
+
+table tr td input[name=tel] {
+	width: 40px;
+}
+
+table tr td input[name=addr] {
+	width: calc(100% - 14px);
+	/* {속성값 !important } 우선순위 지정 */
+}
+
+.ui-datepicker select {
+	vertical-align: middle;
+	height: 28px;
+}
+	
+.valid, .invalid { 
+	font-size: 11px;
+	font-weight: bold; 
+}
+
+.valid, .invaild { margin-bottom : 20px; margin-top : 10px; 
+					 /*  -webkit-animation:blink 1.0s ease-in-out infinite alternate;
+ -moz-animation:blink 1.0s ease-in-out infinite alternate;
+  animation:blink 1.0s ease-in-out infinite alternate;*/
+  
+  color:red; }
+
+input {border : 1px solid #f2f2f2;}
+
+.valid { color: gray; }
+
+.invalid { color: red; }	
+}
+a:hover { cursor:pointer; }
+
+/* a.btn-fill-s { 
+	background-color: #bacdfa;
+} */
+a.btn-empty-s { 
+	background-color: #fff;
+}
+table td a:hover { font-weight: bold; }
+
+.btnSet { margin-top: 20px;	}
+
+a.btn-fill, a.btn-empty {
+	text-align: center;
+	padding: 3px 10px;
+	border:1px solid #3367d6;
+	border-radius: 1px;
+	box-shadow: 2px 2px 2px #022d72;
+	/* 오른쪽, 아래쪽, 번진 정도 */
+}
+
+a.btn-fill { 
+	background-color: #3367d6;
+	color: #fff;
+}
+
+a.btn-empty { 
+	background-color: #fff;
+	color: #3367d6
+}
+
+a.btn-fill-s, a.btn-empty-s {
+	text-align: center;
+	padding: 1px 3px;
+	border:1px solid #c4dafc
+	border-radius: 3px;
+
+	font-size: 11px;
+}
+
+/* 중복확인버튼*/
+.btn-fill-s {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: #f0f0f0; /* 연한 회색 배경색 */
+	border: 1px solid #ccc;
+	margin-left: 3px;
+	border-radius: 4px;
+	box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2); /* 입체적인 느낌을 위한 그림자 효과 */
+	cursor: pointer;
+	transition: box-shadow 0.2s ease; /* hover 효과를 위한 애니메이션 */
+}
+
+.btn-fill-s:hover {
+	box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3); /* hover 시 그림자 효과 강화 */
+}
+a:link, a:visited {
+	text-decoration: none;
+	color: #000;
+}
+
+#content {
+	padding: 20px 0;
+	min-width: 1024px;	/* 창의 최소 크기 지정 */
+}
+
+.login_wrap { width : 760px;}
+

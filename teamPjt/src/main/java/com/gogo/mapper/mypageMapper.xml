@@ -1,0 +1,519 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 연결할 mapper의 interface 풀 경로 작성 -->
+<mapper namespace="com.gogo.mapper.mypageMapper">
+	<!--  ▶▶▶  admin ▶▶▶ -->
+	<!-- 숙소 관리 -->
+	<select id="getList" resultType="com.gogo.vo.StayVO">
+		select to_number(stayNo) stayNo, stayname, memberId, stayInfo, mainpic1 from stay
+		order by stayno desc
+	</select>
+	
+	
+	<!-- 숙소 삭제 -->
+	<delete id="deleteStay">
+		delete stay where stayno in
+		<foreach collection="idArr" item="item" index="index" separator="," open="(" close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+	
+	<!-- 사용자 관리 -->
+	<select id="getMember" resultType="com.gogo.vo.MemberVO">
+		SELECT memberid, membername, memberemail,
+			TO_CHAR(registraiondate, 'YYYY-MM-DD') AS registraiondate
+		FROM member
+		WHERE memberid != 'admin'
+        ORDER BY registraiondate DESC
+	</select>
+	
+	
+	<!-- 사용자 관리 - 검색 -->
+	<select id="getMemberSearch" resultType="com.gogo.vo.MemberVO">
+		SELECT memberid, membername, memberemail,
+			TO_CHAR(registraiondate, 'YYYY-MM-DD') AS registraiondate
+		FROM member
+		WHERE memberid != 'admin'
+		<include refid="search"/>
+        ORDER BY MEMBERID ASC
+	</select>
+	
+	<sql id="search">
+		<choose>
+			<when test="searchField == 'memberId'">
+				and memberId like '%'||#{searchWord}||'%'
+			</when>
+			<when test="searchField == 'memberName'">
+				and memberName like '%'||#{searchWord}||'%'
+			</when>
+		</choose>
+	</sql>
+	
+	
+	<!-- 멤버 여러명 삭제 -->
+	<delete id="deleteArr">
+		delete member where memberid in
+		<foreach collection="idArr" item="item" index="index" separator="," open="(" close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+	
+	<!-- 호스트지원 - 문의 답변하기 -->
+	<insert id="answering">
+		insert into answer (queno, answerinfo, answerdate) values (#{queNo}, #{answerInfo}, sysdate)
+	</insert>
+	
+	
+	<!-- 호스트지원 - 답변한 내용 어드민에서 확인 할 수 있게! -->
+	<select id="answerInfo" resultType="com.gogo.vo.AnswerVO">
+		select answerinfo, 
+		TO_CHAR(answerdate, 'MM/DD') AS answerdate
+		from answer where queno = #{queNo}
+	</select>
+	
+	
+	<!-- 통계 -->
+	<select id="chartAge" resultType="com.gogo.vo.MemberVO">
+		SELECT 
+		  CASE 
+		    WHEN EXTRACT(YEAR FROM SYSDATE) - EXTRACT(YEAR FROM birthday) + 1 BETWEEN 20 AND 29 THEN '20대'
+		    WHEN EXTRACT(YEAR FROM SYSDATE) - EXTRACT(YEAR FROM birthday) + 1 BETWEEN 30 AND 39 THEN '30대'
+		    ELSE '40대 이상'
+		  END AS age_group,
+		  COUNT(*) AS count
+		FROM member m
+		GROUP BY 
+		  CASE 
+		    WHEN EXTRACT(YEAR FROM SYSDATE) - EXTRACT(YEAR FROM birthday) + 1 BETWEEN 20 AND 29 THEN '20대'
+		    WHEN EXTRACT(YEAR FROM SYSDATE) - EXTRACT(YEAR FROM birthday) + 1 BETWEEN 30 AND 39 THEN '30대'
+		    ELSE '40대 이상'
+		  END
+	</select>
+	
+	
+	<select id="chartGender" resultType="com.gogo.vo.MemberVO">
+		SELECT
+		    CASE 
+		        WHEN gender = 'M' THEN '남'
+		        WHEN gender = 'F' THEN '여'
+		    END AS gender_group,
+		    COUNT(*) AS gender_Count
+		FROM
+		    member
+		WHERE gender IS NOT NULL
+		GROUP BY
+		    CASE 
+		        WHEN gender = 'M' THEN '남'
+		        WHEN gender = 'F' THEN '여'
+		    END
+	</select>
+	
+	
+	
+	<!--  ▶▶▶  host ▶▶▶ -->
+	<!-- 숙소 관리 -->
+	<select id="getStay" resultType="com.gogo.vo.StayVO">
+		SELECT s.stayname, s.stayno, s.stayloc, s.stayadress, s.stayinfo, s.staytype, s.mainpic1, s.memberId
+		FROM stay s
+	</select>
+	
+	
+	<!-- 숙소 관리 - 객실 보기 -->
+	<select id="roomInfo" resultType="java.util.Map">
+		SELECT
+		    r.roomname,
+		    r.roominfo AS roominfo,
+		    r.roomno,
+		    a.uploadpath || a.uuid || '_' || a.filename AS roomPhoto,
+		    s.stayname
+		FROM
+		    room r
+		JOIN
+		    stay s ON r.stayno = s.stayno
+		JOIN
+		    attach a ON s.stayno = a.stayno
+		JOIN
+		    member m ON s.memberid = m.memberid
+		WHERE
+		    m.memberid = #{memberId}
+		    AND a.uploadpath LIKE 'room%'
+		    AND a.filename LIKE '%1.jpg'
+		    AND a.filename LIKE '%' || r.roomname || '%'
+	</select>
+	
+	<!-- memberId 로 room 조회 -->
+	<select id="getRoomArr" resultType="com.gogo.vo.RoomVO">
+		select *
+		from room r
+        join stay s on r.stayno = s.stayno
+		where memberId = #{memberId}
+	</select>
+	
+	<!-- room에서 사진 한 장 조회 -->
+	<select id="getRoomFirstPic" resultType="String">
+	 	select uploadpath || uuid || '_' || filename as roomPhoto 
+	 	from (
+	 		select t.*, rownum rn 
+	 		from (
+	 			select * 
+	 			from attach 
+	 			where roomno = #{roomNo}
+	 			) t
+	 		) 
+	 	where rn = 1
+	</select>
+	
+	
+	<resultMap type="java.util.HashMap" id="roomMap">
+	
+	    <result property="roomName" column="ROOMNAME" />
+	    <result property="roomNo" column="ROOMNO" />
+	    <result property="roomInfo" column="ROOMINFO" />
+	    <result property="roomPhoto" column="ROOMPHOTO" />
+	    <result property="stayName" column="STAYNAME" />
+	</resultMap>
+	
+	
+	<!-- 숙소 관리 - 숙소 삭제 -->
+	<delete id="deleteRoom">
+		delete from room where roomno= #{roomNo}
+	</delete>	
+	
+	
+	<!-- 예약 관리 -->
+	<select id="reservinfo" resultType="java.util.Map">
+		SELECT
+		      v.roomno,
+		      r.roomname,
+		      v.memberid AS reservationMemberId,
+              s.memberid AS stayMemberId,
+		      TO_CHAR(regdate, 'YY-MM-DD') AS regdate,
+		      TO_CHAR(checkin, 'YY-MM-DD') AS checkin,
+		      TO_CHAR(checkout, 'YY-MM-DD') AS checkout,
+		      membercount
+	    FROM reservation v, room r, stay s
+        where v.roomno = r.roomno
+        and r.stayno = s.stayno
+        and s.memberid = #{memberId}
+        and r.roomno= #{roomNo}
+	</select>
+	
+	<resultMap type="java.util.HashMap" id="reserv_Map">
+	    <result property="roomNo" column="ROOMNO" />
+	    <result property="roomName" column="ROOMNAME" />
+	    <result property="reservationMemberId" column="RESERVATIONMEMBERID" />
+	    <result property="stayMemberId" column="STAYMEMBERID" />
+	    <result property="regDate" column="REGDATE" />
+	    <result property="checkIn" column="CHECKIN" />
+	    <result property="checkOut" column="CHECKOUT" />
+	</resultMap>
+	
+	
+	<!-- 예약 관리 숙소 대표 사진 -->
+	<resultMap type="map" id="stayMap">
+	    <result property="stayName" column="STAYNAME" />
+	    <result property="mainPic1" column="MAINPIC1" />
+	    <result property="roomNo" column="ROOMNO" />
+	</resultMap>
+	
+	 <select id="reservpic" resultMap="stayMap">
+	    SELECT s.STAYNAME, s.MAINPIC1, r.ROOMNO
+	    FROM STAY s
+	    JOIN ROOM r ON s.STAYNO = r.STAYNO
+	    JOIN RESERVATION v ON r.ROOMNO = v.ROOMNO
+	</select>
+	
+	
+	<!-- 객실 이름 -> select -->  
+	<select id="selectRoomName" resultType="com.gogo.vo.RoomVO">
+		select roomname, roomno from room join stay using(stayno) where stay.memberid=#{memberId}
+	</select>
+	
+	<!-- 수입 현황 -->
+	<select id="profit" resultType="com.gogo.vo.ReservedVO">
+	    SELECT
+		    TO_CHAR(v.regdate, 'YYYY-MM') AS month,
+		    SUM(price) AS total_price
+		FROM
+		    room r
+		JOIN
+		    reservation v ON r.roomno = v.roomno
+		JOIN
+		    stay s ON s.stayno = r.stayno
+		JOIN
+		    payment p ON v.reservationno = p.reservationno
+		LEFT JOIN
+		    refund f ON p.paymentno = f.paymentno
+		WHERE
+		    s.memberid = #{memberId} AND f.amount IS NULL
+		GROUP BY
+		    TO_CHAR(v.regdate, 'YYYY-MM')
+		ORDER BY
+		    TO_CHAR(v.regdate, 'YYYY-MM')
+	</select>
+	
+	
+	
+	<!-- 가이드 문의 요청 -->
+	<insert id="insert">
+		<selectKey keyProperty="queNo" order="BEFORE" resultType="int">
+			select QUESEQ.nextval from dual
+		</selectKey>
+	
+		insert into question (queNo, memberId, title, content, contentDate) 
+		values (#{queNo}, #{memberId}, #{title}, #{content}, sysdate)
+	</insert>
+
+
+	<!-- 문의 list 출력 -->
+	<select id="qaList" resultType="com.gogo.vo.QuestionVO">
+		select to_number(queno) queno, memberid, title, content, to_char(contentdate, 'yy-mm-dd') as contentdate
+		from question
+		order by queno desc, contentdate desc
+	</select>
+
+
+	<!-- 문의 한건 출력 -->
+	<select id="getOne" resultType="com.gogo.vo.QuestionVO">
+	<!-- 회원 아이디와 비교해서 해당 -> 출력 -->
+		select queNo, title, content from question where queNo = #{queNo}
+	</select>
+	
+	
+	
+	<!--  ▶▶▶  user ▶▶▶ -->
+	<!-- 예약 정보 -->
+	<select id="reservList" resultType="java.util.Map">
+			SELECT * FROM (
+		    SELECT s.stayname, r.price, s.stayno,
+		           v.reservationno,
+		           TO_CHAR(v.regdate, 'yyyy-mm-dd') AS regdate,
+		           TO_CHAR(v.checkin, 'yyyy-mm-dd') AS checkin,
+		           TO_CHAR(v.checkout, 'yyyy-mm-dd') AS checkout,
+		           v.membercount,
+		           s.mainpic1,
+		           m.memberid,
+		           ROW_NUMBER() OVER (ORDER BY v.regdate DESC) as row_num
+		    FROM reservation v
+		    JOIN member m ON m.memberid = v.memberid
+		    JOIN payment p ON v.reservationno = p.reservationno
+		    JOIN room r ON r.roomno = v.roomno
+		    JOIN stay s ON s.stayno = r.stayno
+		    LEFT JOIN refund f ON p.paymentno = f.paymentno
+		    WHERE v.memberid = #{memberId} AND f.paymentno IS NULL
+		    AND v.checkout > SYSDATE
+		) WHERE row_num BETWEEN ((${pageNo}-1) * 5 + 1) AND ${pageNo} * 5
+	</select>
+	
+		<select id="reservListCount" resultType="int">
+			SELECT count(*) FROM (
+		    SELECT s.stayname, r.price, s.stayno,
+		           v.reservationno,
+		           TO_CHAR(v.regdate, 'yyyy-mm-dd') AS regdate,
+		           TO_CHAR(v.checkin, 'yyyy-mm-dd') AS checkin,
+		           TO_CHAR(v.checkout, 'yyyy-mm-dd') AS checkout,
+		           v.membercount,
+		           s.mainpic1,
+		           m.memberid,
+		           ROW_NUMBER() OVER (ORDER BY v.regdate DESC) as row_num
+		    FROM reservation v
+		    JOIN member m ON m.memberid = v.memberid
+		    JOIN payment p ON v.reservationno = p.reservationno
+		    JOIN room r ON r.roomno = v.roomno
+		    JOIN stay s ON s.stayno = r.stayno
+		    LEFT JOIN refund f ON p.paymentno = f.paymentno
+		    WHERE v.memberid = #{memberId} AND f.paymentno IS NULL
+		    AND v.checkout > SYSDATE
+		) 
+	</select>
+	
+	<resultMap type="java.util.HashMap" id="reservMap">
+	    <result property="stayName" column="stayname" />
+	    <result property="mainPic1" column="MAINPIC1" />
+	    <result property="price" column="PRICE" />
+	    <result property="stayNo" column="STAYNO" />
+	    <result property="reservationNo" column="RESERVATIONNO" />
+	    <result property="regDate" column="REGDATE" />
+	    <result property="checkIn" column="CHECKIN" />
+	    <result property="checkOut" column="CHECKOUT" />
+	    <result property="memberCount" column="MEMBERCOUNT" />
+	    <result property="memberId" column="MEMBERID" />
+	</resultMap>
+	
+	
+	<!-- 이용완료 정보 -->
+	<select id="completedList" resultType="java.util.Map">
+		SELECT s.stayname, r.price, s.stayno,
+        v.reservationno,
+		    TO_CHAR(v.regdate, 'yyyy-mm-dd') AS regdate,
+		    TO_CHAR(v.checkin, 'yyyy-mm-dd') AS checkin,
+		    TO_CHAR(v.checkout, 'yyyy-mm-dd') AS checkout,
+		    v.membercount,
+		    s.mainpic1,
+		    m.memberid
+	    FROM reservation v
+        JOIN member m ON m.memberid = v.memberid
+	    JOIN payment p ON v.reservationno = p.reservationno
+        JOIN room r ON r.roomno = v.roomno
+        JOIN stay s ON s.stayno = r.stayno
+	    LEFT JOIN refund f ON p.paymentno = f.paymentno
+	    WHERE v.memberid = 'user1' AND f.paymentno IS NULL
+	    <![CDATA[
+	    AND v.checkout < SYSDATE
+	    ]]>
+	</select>
+
+	<resultMap type="java.util.HashMap" id="completedMap">
+		    <result property="stayName" column="stayname" />
+		    <result property="mainPic1" column="MAINPIC1" />
+		    <result property="price" column="PRICE" />
+		    <result property="stayNo" column="STAYNO" />
+		    <result property="reservationNo" column="RESERVATIONNO" />
+		    <result property="regDate" column="REGDATE" />
+		    <result property="checkIn" column="CHECKIN" />
+		    <result property="checkOut" column="CHECKOUT" />
+		    <result property="memberCount" column="MEMBERCOUNT" />
+		    <result property="memberId" column="MEMBERID" />
+	</resultMap>
+	
+	
+	<!-- 취소 정보 -->
+	<select id="cancelList" resultType="java.util.Map">
+		SELECT * FROM (
+		    SELECT s.stayname, r.price, s.stayno,
+		           v.reservationno,
+		           TO_CHAR(v.regdate, 'yyyy-mm-dd') AS regdate,
+		           TO_CHAR(v.checkin, 'yyyy-mm-dd') AS checkin,
+		           TO_CHAR(v.checkout, 'yyyy-mm-dd') AS checkout,
+		           v.membercount,
+		           s.mainpic1,
+		           m.memberid,
+		           ROW_NUMBER() OVER (ORDER BY f.regdate DESC) as row_num
+		    FROM reservation v
+		    JOIN member m ON m.memberid = v.memberid
+		    JOIN payment p ON v.reservationno = p.reservationno
+		    JOIN room r ON r.roomno = v.roomno
+		    JOIN stay s ON s.stayno = r.stayno
+		    LEFT JOIN refund f ON p.paymentno = f.paymentno
+		    WHERE v.memberid = #{memberId} AND f.paymentno IS NOT NULL
+		    AND v.checkout > SYSDATE
+		) WHERE row_num BETWEEN ((${pageNo}-1) * 5 + 1) AND ${pageNo} * 5
+	</select>
+	
+	<select id="cancleListCount" resultType="int">
+		SELECT count(*) FROM (
+		    SELECT s.stayname, r.price, s.stayno,
+		           v.reservationno,
+		           TO_CHAR(v.regdate, 'yyyy-mm-dd') AS regdate,
+		           TO_CHAR(v.checkin, 'yyyy-mm-dd') AS checkin,
+		           TO_CHAR(v.checkout, 'yyyy-mm-dd') AS checkout,
+		           v.membercount,
+		           s.mainpic1,
+		           m.memberid,
+		           ROW_NUMBER() OVER (ORDER BY f.regdate DESC) as row_num
+		    FROM reservation v
+		    JOIN member m ON m.memberid = v.memberid
+		    JOIN payment p ON v.reservationno = p.reservationno
+		    JOIN room r ON r.roomno = v.roomno
+		    JOIN stay s ON s.stayno = r.stayno
+		    LEFT JOIN refund f ON p.paymentno = f.paymentno
+		    WHERE v.memberid = #{memberId} AND f.paymentno IS NOT NULL
+		    AND v.checkout > SYSDATE
+		) 
+	</select>
+	
+	<resultMap type="java.util.HashMap" id="cancelMap">
+	    <result property="stayName" column="STAYNAME" />
+	    <result property="mainPic1" column="MAINPIC1" />
+	    <result property="checkIn" column="CHECKIN" />
+	    <result property="checkOut" column="CHECKOUT" />
+	    <result property="memberCount" column="MEMBERCOUNT" />
+	    <result property="memberId" column="MEMBERID" />
+	</resultMap>
+	
+	
+	<!-- 회원 정보 조회 -->
+	<select id="mem" resultType="com.gogo.vo.MemberVO">
+		select memberid, membername, pw, memberemail from member
+	</select>
+	
+	
+	<!-- 회원 정보 수정 -->
+	<update id="update">
+		update member set memberEmail = #{memberEmail} , pw = #{pw} where memberid = #{memberId}
+	</update>
+	
+	
+	<!-- 회원 사진 -->
+	<select id="selectProfile" resultType="com.gogo.vo.FileuploadVO">
+		select uploadpath||uuid||'_'||filename as profile from attach where memberid = #{memberId} 	
+	</select>
+	
+	
+	
+	<!-- 회원 사진 삭제 -->
+	<delete id="deleteProfile">
+		delete from attach where memberid = #{memberId}
+	</delete>
+	
+	
+	<!-- 회원 탈퇴 -->
+	<delete id="memberQuit">
+		delete member where memberid = #{memberId}
+	</delete>
+	
+	<!-- 관심스테이 -->
+	<select id="likestay" resultType="java.util.Map">
+		SELECT 
+		    s.stayname, 
+		    MIN(r.price) AS price
+		    , s.staytype
+		    , s.stayadress
+		    , s.mainpic1
+		    , min(r.stdperson) AS stdperson
+		    , max(r.overperson) As overperson
+		    , l.memberid
+		FROM stay s 
+		JOIN room r ON s.stayno = r.stayno
+		JOIN likestay l ON s.stayno = l.stayno
+		WHERE l.memberid = #{memberId}
+		GROUP BY s.stayname
+		, s.staytype
+		, s.stayadress
+		, s.mainpic1
+		, l.memberid
+		ORDER BY s.stayname
+	</select>
+	
+	<resultMap type="java.util.HashMap" id="likeMap">
+	    <result property="stayName" column="STAYNAME" />
+	    <result property="stayType" column="STAYTYPE" />
+	    <result property="stayAdress" column="STAYADRESS" />
+	    <result property="stePerson" column="STDPERSON" />
+	    <result property="overPerson" column="OVERPERSON" />
+	    <result property="price" column="PRICE" />
+	    <result property="mainPic1" column="MAINPIC1" />
+	    <result property="memberId" column="MEMBERID" />
+	</resultMap>
+	
+	
+	<select id="travelCnt" resultType="int">
+		SELECT COUNT(*)
+		FROM reservation
+		WHERE memberid = #{memberId}
+		AND reservationno NOT IN (
+		    SELECT v.reservationno
+		    FROM refund f
+		    JOIN payment p ON f.paymentno = p.paymentno
+		    JOIN reservation v ON p.reservationno = v.reservationno
+		    WHERE v.memberid = #{memberId}
+		)
+	</select>
+
+	
+</mapper>

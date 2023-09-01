@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gogo.mapper.MessageMapper">
+
+	<insert id="insertMessage">
+		insert into message values(messageseq.nextval, #{content}, sysdate, #{type}, #{memberId}, #{roomId}, #{stayNo})
+	</insert>
+	
+	<select id="getSysdate" resultType="String">
+		SELECT TO_CHAR(sysdate, 'YY/MM/DD HH24:MI') AS formatted_date
+		FROM dual
+	</select>
+	
+	
+	<select id="getList" resultType="com.gogo.vo.MessageVO">
+			SELECT m.*, mr.role_id AS memberRole
+			FROM Message m
+			JOIN MemberRole mr ON m.memberId = mr.memberId
+			WHERE m.roomId = #{roomId}
+			order by m.regdate
+	</select>
+
+
+	<insert id="insertMessageRoom">
+		insert into messageRoom values(messageroomseq.nextval, messageroomseq.nextval||'번방')
+	</insert>
+	
+	<insert id="insertMessageRoomCustom">
+		insert into messageRoom values(#{roomId}, #{roomId}||'번방')
+	</insert>
+	
+	<select id="getRoomId" resultType="String">
+		select roomId from messageRoom where roomId = #{roomId}
+	</select>
+	
+	<!-- currval가 가능한 이유는 위에서 insert한 직후에 사용해서이다. -->
+	<select id="getNewRoomId" resultType="String">
+		select messageroomseq.currval from dual
+	</select>
+	
+	<select id="joinYN" resultType="int">
+		SELECT COUNT(*) 
+        FROM Message 
+        WHERE memberId = #{memberId} 
+        AND roomId = #{roomId} 
+        AND type = 'ENTER'
+	</select>
+	
+	<select id="joinYN2" resultType="int">
+		SELECT COUNT(*) 
+        FROM Message 
+        WHERE memberId = #{memberId} 
+        AND roomId = #{roomId} 
+        AND type = 'OUT'
+	</select>
+	
+	<select id="messageRoomList" resultType="com.gogo.vo.MessageRoomVO">
+			SELECT roomId, memberId, roomName, stayNo
+			FROM (
+			    SELECT m.roomId, m.memberId, mr.roomName, m.stayNo,
+			           ROW_NUMBER() OVER (ORDER BY m.regdate DESC) as rnum
+			    FROM Message m
+			    JOIN MessageRoom mr ON m.roomId = mr.roomId
+			    JOIN Stay s ON m.stayNo = s.stayNo
+			      AND m.roomId IN (
+			          SELECT roomId
+			          FROM Message
+			          GROUP BY roomId
+			      )
+			      AND s.memberId = #{memberId}
+			      AND m.regdate = (
+			          SELECT MIN(regdate)
+			          FROM Message
+			          WHERE roomId = m.roomId
+			      )
+			) 
+			WHERE rnum BETWEEN ((#{pageNo}-1) * 10) + 1 AND #{pageNo} * 10
+	</select>
+	
+	<select id="messageRoomListCount" resultType="int">
+				SELECT count(*)
+			FROM (
+			    SELECT m.roomId, m.memberId, mr.roomName, m.stayNo,
+			           ROW_NUMBER() OVER (ORDER BY m.regdate DESC) as rnum
+			    FROM Message m
+			    JOIN MessageRoom mr ON m.roomId = mr.roomId
+			    JOIN Stay s ON m.stayNo = s.stayNo
+			      AND m.roomId IN (
+			          SELECT roomId
+			          FROM Message
+			          GROUP BY roomId
+			      )
+			      AND s.memberId = #{memberId}
+			      AND m.regdate = (
+			          SELECT MIN(regdate)
+			          FROM Message
+			          WHERE roomId = m.roomId
+			      )
+			)
+	
+	
+	</select>
+	
+	
+	<select id="messageRoomListUser" resultType="com.gogo.vo.MessageRoomVO">
+		SELECT roomId, memberId, roomName, stayNo
+		FROM (
+		    SELECT m.roomId, m.memberId, mr.roomName, m.stayNo, 
+		           ROW_NUMBER() OVER (ORDER BY m.regdate DESC) as rnum
+		    FROM Message m
+		    JOIN MessageRoom mr ON m.roomId = mr.roomId
+		      AND m.roomId IN (
+		          SELECT roomId
+		          FROM Message
+		          GROUP BY roomId
+		      )
+		      AND m.memberId = #{memberId}
+		      AND m.regdate = (
+		          SELECT MIN(regdate)
+		          FROM Message
+		          WHERE roomId = m.roomId
+		      )
+		    ORDER BY m.regdate DESC 
+		) 
+		WHERE rnum BETWEEN ((#{pageNo}-1) * 10) + 1 AND #{pageNo} * 10
+	</select>
+	
+	
+	
+	<select id="messageRoomListUserCount" resultType="int">
+		SELECT count(*)
+		FROM (
+		    SELECT m.roomId, m.memberId, mr.roomName, m.stayNo, 
+		           ROWNUM as rnum
+		    FROM Message m
+		    JOIN MessageRoom mr ON m.roomId = mr.roomId
+		      AND m.roomId IN (
+		          SELECT roomId
+		          FROM Message
+		          GROUP BY roomId
+		          
+		      )
+		      AND m.memberId = #{memberId}
+		      AND m.regdate = (
+		          SELECT MIN(regdate)
+		          FROM Message
+		          WHERE roomId = m.roomId
+		      )
+		    ORDER BY m.regdate DESC 
+		) 
+
+	</select>
+
+	
+	<select id="getMessageRoomOwner" resultType="String">
+		  SELECT memberId
+			FROM Message
+			WHERE roomId = #{roomId}
+			  AND type = 'ENTER'
+			  AND regdate = (
+			    SELECT MIN(regdate)
+			    FROM Message
+			    WHERE roomId = #{roomId}
+			)
+	</select>
+	
+	<select id="getStayNoMsg" resultType="String">
+		select distinct(stayNo) from message where roomId = #{roomId}
+	</select>
+	
+	<select id="getStayNo" resultType="String">
+		SELECT ro.stayNo
+		FROM Reservation r
+		JOIN room ro ON r.roomNo = ro.roomNo
+		WHERE r.reservationNo = ${reservationNo}
+	</select>
+
+</mapper>

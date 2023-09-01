@@ -1,0 +1,605 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gogo.mapper.StayMapper">
+
+	<select id="stayList" resultType="com.gogo.vo.StayVO">
+	SELECT subq3.stayNo,
+		subq3.stayname,
+		subq3.staytype,
+		subq3.stayloc || '/' || SUBSTR(subq3.stayadress, INSTR(subq3.stayadress, ' ') + 1,
+		INSTR(subq3.stayadress, ' ', INSTR(subq3.stayadress, ' ') + 1) -
+		INSTR(subq3.stayadress, ' ') - 1) AS stayLoc,
+		subq3.stdperson,
+		subq3.overperson,
+		subq3.badge,
+		subq3.mainpic1,
+		subq3.stayview,
+		subq3.maxprice as maxprice,
+		subq3.minprice as minprice,
+		decode(like_count, null, 0, like_count) as likecount
+	FROM (
+		SELECT subq2.stayNo,
+		subq2.stayNo AS stayNo_subq3, subq2.stayname,
+		subq2.staytype,
+		subq2.stayloc,
+		subq2.stayadress,
+		min(subq2.stdperson) OVER (PARTITION BY subq2.stayname) AS stdperson,
+		max(subq2.overperson) OVER (PARTITION BY subq2.stayname) AS overperson,
+		subq2.price,
+		subq2.badge,
+		subq2.mainpic1,
+		subq2.stayview,
+		MAX(subq2.price) OVER (PARTITION BY subq2.stayname) AS maxprice,
+		MIN(subq2.price) OVER (PARTITION BY subq2.stayname) AS minprice,
+		ROW_NUMBER() OVER (PARTITION BY subq2.stayname ORDER BY subq2.stayname) AS rn
+	FROM (
+		SELECT stay.stayNo, stayname,
+		staytype,
+		stayloc,
+		stayadress,
+		stdperson,
+		overperson,
+		price,
+		badge,
+		mainpic1,
+		stayview
+		FROM stay
+		LEFT JOIN room ON stay.stayNo = room.stayNo
+		) subq2
+	) subq3
+		LEFT JOIN (
+		SELECT stayNo, COUNT(*) AS like_count
+		FROM likestay
+		GROUP BY stayNo
+	) subq4
+	ON subq3.stayNo_subq3 = subq4.stayNo
+	WHERE subq3.rn = 1
+	</select>
+	
+	<!-- stay 이미지 -->
+	<select id="stayImgList" resultType="com.gogo.vo.FileuploadVO">
+		select stayNo, (uploadpath ||uuid|| '_' ||fileName) as fileName from attach where roomno is null
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<select id="stayKeywordList" resultType="com.gogo.vo.StayVO">
+	SELECT subq3.stayNo,
+		subq3.stayname,
+		subq3.staytype,
+		subq3.stayloc || '/' || SUBSTR(subq3.stayadress, INSTR(subq3.stayadress, ' ') + 1,
+		INSTR(subq3.stayadress, ' ', INSTR(subq3.stayadress, ' ') + 1) -
+		INSTR(subq3.stayadress, ' ') - 1) AS stayLoc,
+		subq3.stdperson,
+		subq3.overperson,
+		subq3.badge,
+		subq3.mainpic1,
+		subq3.stayview,
+		subq3.maxprice as maxprice,
+		subq3.minprice as minprice,
+		decode(like_count, null, 0, like_count) as likecount
+		<if test='roomOptions != null and roomOptions.length > 0 and roomOptions[0] != ""'>
+			 ,subquery.roomNo,
+		     subquery.babiqu,
+		     subquery.pet,
+		     subquery.pool,
+		     subquery.terrace,
+		     subquery.beamprojector
+		</if>
+	FROM (
+		SELECT subq2.stayNo,
+		subq2.stayNo AS stayNo_subq3, subq2.stayname,
+		subq2.staytype,
+		subq2.stayloc,
+		subq2.stayadress,
+		min(subq2.stdperson) OVER (PARTITION BY subq2.stayname) AS stdperson,
+		max(subq2.overperson) OVER (PARTITION BY subq2.stayname) AS overperson,
+		subq2.price,
+		subq2.badge,
+		subq2.mainpic1,
+		subq2.stayview,
+		MAX(subq2.price) OVER (PARTITION BY subq2.stayname) AS maxprice,
+		MIN(subq2.price) OVER (PARTITION BY subq2.stayname) AS minprice,
+		ROW_NUMBER() OVER (PARTITION BY subq2.stayname ORDER BY subq2.stayname) AS rn
+	FROM (
+		SELECT stay.stayNo, stayname,
+		staytype,
+		stayloc,
+		stayadress,
+		stdperson,
+		overperson,
+		price,
+		badge,
+		mainpic1,
+		stayview
+		FROM stay
+		LEFT JOIN room ON stay.stayNo = room.stayNo
+		) subq2
+	) subq3
+	<if test='roomOptions != null and roomOptions.length > 0 and roomOptions[0] != ""'>
+		left JOIN (
+		  SELECT
+		    stayNo,
+		    roomNo,
+		    babiqu,
+		    pet,
+		    pool,
+		    terrace,
+		    beamprojector,
+		    ROW_NUMBER() OVER (PARTITION BY stayNo ORDER BY roomNo) AS sequence_number
+		  FROM roomoptionyn
+		) subquery
+		ON subq3.stayNo_subq3 = subquery.stayNo
+	</if>
+		LEFT JOIN (
+		SELECT to_number(stayNo) stayNo, COUNT(*) AS like_count
+		FROM likestay
+		GROUP BY stayNo
+	) subq4
+	ON subq3.stayNo_subq3 = subq4.stayNo
+	WHERE subq3.rn = 1
+			<if test='stayName != null and !"".equals(stayName)'>
+				and stayname Like CONCAT(CONCAT('%', #{stayName}), '%')
+			</if>		
+			<if test='stayAdress != null and !"".equals(stayAdress)'>
+				and stayLoc Like CONCAT(CONCAT('%', #{stayAdress}), '%')
+			</if>	
+			<if test='stdPerson != null and !"".equals(stdPerson)'>
+				and stdperson >= #{stdPerson}
+			</if>	
+			<if test='maxPrice!= null and !"".equals(maxPrice)'>
+				and minprice between 0 and #{maxPrice}
+			</if>	
+			<if test='stayTypes != null and stayTypes[0] != ""'>
+			    and staytype IN
+			    <foreach item='stayType' collection='stayTypes' open='(' separator=',' close=')'>
+			        #{stayType}
+			    </foreach>
+			</if>
+			<if test='stayView != null and !"".equals(stayView)'>
+				and stayview = '${stayView}'
+			</if>	
+			
+			<if test='roomOptions != null and roomOptions.length > 0 and roomOptions[0] != ""'>
+			    <foreach collection='roomOptions' item='roomOption' separator=' ' open='' close=''>
+			        <choose>
+			            <when test='roomOption == "babiqu"'>
+			                <![CDATA[AND subquery.sequence_number = 1 and babiqu = 'Y' ]]>
+			            </when>
+			            <when test='roomOption == "pet"'>
+			                <![CDATA[AND subquery.sequence_number = 1 and pet = 'Y' ]]>
+			            </when>
+			            <when test='roomOption == "pool"'>
+			                <![CDATA[AND subquery.sequence_number = 1 and pool = 'Y' ]]>
+			            </when>
+			            <when test='roomOption == "terrace"'>
+			                <![CDATA[AND subquery.sequence_number = 1 and terrace = 'Y' ]]>
+			            </when>
+			            <when test='roomOption == "beamprojector"'>
+			                <![CDATA[AND subquery.sequence_number = 1 and beamprojector = 'Y' ]]>
+			            </when>
+			        </choose>
+			    </foreach>
+			</if>
+			
+			
+<!-- 			<if test='roomOption != null and "babiqu".equals(roomOptions)'>
+				AND subquery.sequence_number = 1 and babiqu = 'Y' 
+			</if>	
+			<if test='roomOption != null and "pet".equals(roomOptions)'>
+				AND subquery.sequence_number = 1 and pet = 'Y' 
+			</if>	
+			<if test='roomOption != null and "pool".equals(roomOptions)'>
+				AND subquery.sequence_number = 1 and pool = 'Y'
+			</if>	
+			<if test='roomOption != null and "terrace".equals(roomOptions)'>
+				AND subquery.sequence_number = 1 and terrace = 'Y'
+			</if>	
+			<if test='roomOption != null and "beamprojector".equals(roomOptions)'>
+				AND subquery.sequence_number = 1 and beamprojector = 'Y'
+			</if> -->
+   			<if test='findStartDate != null and findEndDate != null and findStartDate != "" and findEndDate != ""'>
+   				<![CDATA[
+				and subq3.stayno in (select stayno from room where roomno not in (SELECT stayno FROM reservation JOIN room ON room.roomno = reservation.roomno WHERE #{findStartDate} <= checkout AND #{findEndDate} >= checkin))
+   				]]>
+			</if>
+			
+			<!-- 카테고리별 값 출력 -->
+			<if test='category != null and "최신순".equals(category)'>
+				order by stayno desc
+			</if>		
+			<if test='category != null and "인기순".equals(category)'>
+				order by likecount desc
+			</if>		
+			<if test='category != null and "높은 가격순".equals(category)'>
+				order by minprice desc
+			</if>		
+			<if test='category != null and "낮은 가격순".equals(category)'>
+				order by minprice asc
+			</if>	
+			
+			<!-- 왼쪽 카테고리 -->
+			<if test='category != null and "모든 스테이".equals(category)'>
+				order by likecount desc
+			</if>
+			<if test='category != null and "프로모션".equals(category)'>
+				and badge = 'EXCLUSIVE'
+			</if>			
+			<if test='category != null and "너랑 가고싶어".equals(category)'>
+				and badge = 'HOT'
+			</if>	
+	</select>
+	
+	
+	<!-- 로그인 할 회원 좋아요 넣기 -->
+	<insert id="insertLike">
+		insert into likestay values(#{stayNo}, #{memberId})
+	</insert>
+	
+	<!-- 좋아요 누른 리스트 -->
+	<select id="likeId" resultType="com.gogo.vo.StayVO">
+		select stayno from likestay where memberid = #{memberId}
+	</select>
+	
+	<select id="likeIdRest" resultType="com.gogo.vo.StayVO">
+		select stayno from likestay where memberid = #{memberId}
+	</select>
+	
+	<!-- 로그인 한 좋아요 취소 -->
+	<delete id="deleteLike">
+		delete from likestay where memberid = #{memberId} and stayno = #{stayNo}
+	</delete>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<!-- room 정보 출력 -->
+	<select id="roomInfo" resultType="java.util.Map">
+	SELECT subq3.stayNo,
+       subq3.stayname,
+       subq3.staytype,
+       subq3.stayloc || '/' || SUBSTR(subq3.stayadress, INSTR(subq3.stayadress, ' ') + 1, INSTR(subq3.stayadress, ' ', INSTR(subq3.stayadress, ' ') + 1) - INSTR(subq3.stayadress, ' ') - 1) AS stayLoc,
+       subq3.stdperson,
+       subq3.overperson,
+       subq3.stayadress,
+       subq3.badge,
+       subq3.mainpic1,
+       <!-- subq3.mainpic2, -->
+       subq3.stayview,
+       subq3.info,
+       subq3.stayinfo,
+       subq3.latitude,
+       subq3.longitude,
+       subq3.sns,
+       subq3.tel,
+       TO_CHAR(subq3.minprice, '999,999') as minprice,
+       decode(like_count, null, 0, like_count) as likecount
+       ,subquery.babiqu,
+       subquery.pet,
+       subquery.pool,
+       subquery.terrace,
+       subquery.beamprojector
+	FROM (
+	  SELECT subq2.stayNo, 
+	        subq2.stayNo AS stayNo_subq3, subq2.stayname,
+	         subq2.staytype,
+	         subq2.stayloc,
+	         subq2.stayadress,
+	         min(subq2.stdperson) OVER (PARTITION BY subq2.stayname) AS stdperson,
+         	 max(subq2.overperson) OVER (PARTITION BY subq2.stayname) AS overperson,
+	         subq2.price,
+	         subq2.badge,
+	         subq2.mainpic1,
+	        <!--  subq2.mainpic2, -->
+	         subq2.stayview,
+	         subq2.info,
+	         subq2.stayinfo,
+	         subq2.latitude,
+         	 subq2.longitude,
+         	 subq2.sns,
+         	 subq2.tel,
+	         MIN(subq2.price) OVER (PARTITION BY subq2.stayname) AS minprice,
+	         ROW_NUMBER() OVER (PARTITION BY subq2.stayname ORDER BY subq2.stayname) AS rn
+	  FROM (
+	    SELECT stay.stayNo, stayname,
+	           staytype,
+	           stayloc,
+	           stayadress,
+	           stdperson,
+           	   overperson,
+	           price,
+	           badge,
+	           mainpic1,
+	           <!-- mainpic2, -->
+	           stayview,
+	           info,
+	           stayinfo,
+	           latitude,
+               longitude,
+               sns,
+           	   tel
+	    FROM stay
+	    LEFT JOIN room ON stay.stayNo = room.stayNo
+	  ) subq2
+	) subq3
+	left JOIN (
+	  SELECT
+	    stayNo,
+	    babiqu,
+	    pet,
+	    pool,
+	    terrace,
+	    beamprojector,
+	    ROW_NUMBER() OVER (PARTITION BY stayNo ORDER BY roomNo) AS sequence_number
+	  FROM roomoptionyn
+	) subquery
+	ON subq3.stayNo_subq3 = subquery.stayNo
+	
+	LEFT JOIN (
+	  SELECT stayNo, COUNT(*) AS like_count
+	  FROM likestay
+	  GROUP BY stayNo
+	) subq4
+	ON subq3.stayNo_subq3 = subq4.stayNo
+	WHERE subq3.rn = 1 and stayName = #{stayName} AND subquery.sequence_number = 1
+	</select>
+	
+	<resultMap type="java.util.HashMap" id="roomInfo">
+	    <result property="stayName" column="STAYNO" />
+	    <result property="sns" column="SNS" />
+	    <result property="tel" column="TEL" />
+	    <result property="info" column="INFO" />
+	    <result property="babiqu" column="BABIQU" />
+	    <result property="pet" column="PET" />
+	    <result property="pool" column="POOL" />
+	    <result property="terrace" column="TERRACE" />
+	    <result property="beamProjector" column="BEAMPROJECTOR" />
+	</resultMap>
+	
+	<!-- 숙소 페이지에서 방 리스트 뽑기 -->
+	<select id="stayRoomList" resultType="java.util.Map">
+		select * 
+		from(	
+			SELECT 
+			  room.roomno as roomno,
+			  roomName,
+			  stdperson,
+			  overperson,
+			  TO_CHAR(PRICE, '999,999') AS price,
+			  bed,
+			  ROW_NUMBER() OVER (PARTITION BY room.roomno ORDER BY room.roomno) AS rn
+			FROM room
+			LEFT JOIN roomoptionyn ON room.roomno = roomoptionyn.roomno
+			LEFT JOIN attach ON room.roomno = attach.roomno
+			WHERE room.stayNo = (SELECT stayNo FROM stay WHERE stayName = #{stayName})
+		) subquery
+		where rn = 1
+	</select>
+	<resultMap type="java.util.HashMap" id="stayRoomList">
+	    <result property="bed" column="BED" />
+	    <result property="field" column="FIELD" />
+	</resultMap>
+	<!-- 숙수 페이지에서 방 이미지 뽑기 -->
+	<select id="stayRoomImg" resultType="com.gogo.vo.FileuploadVO">
+	SELECT (uploadpath ||uuid|| '_' ||filename) as filename, stayno, roomno
+	FROM (
+	    SELECT uuid, memberid, uploadpath, filename, stayno, roomno,
+	           ROW_NUMBER() OVER (PARTITION BY roomno ORDER BY uuid) AS rn
+	    FROM attach
+	    WHERE stayno = (SELECT stayno FROM stay WHERE stayname = #{stayName}) AND roomno IS NOT NULL
+	)
+	WHERE rn = 1
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	<!-- 숙소 페이지에서 방 리스트 -> 뽑기 날짜를 통해서-->
+	<select id="stayRoomListDate" resultType="java.util.Map">
+		select * 
+		from(	
+			SELECT 
+			  room.roomno as roomno,
+			  roomName,
+			  stdperson,
+			  overperson,
+			  TO_CHAR(PRICE, '999,999') AS price,
+			  bed,
+			  ROW_NUMBER() OVER (PARTITION BY room.roomno ORDER BY room.roomno) AS rn
+			FROM room
+			LEFT JOIN roomoptionyn ON room.roomno = roomoptionyn.roomno
+			LEFT JOIN attach ON room.roomno = attach.roomno
+			WHERE room.stayNo = (SELECT stayNo FROM stay WHERE stayName = #{stayName})
+		) subquery
+		where rn = 1
+   		<![CDATA[
+			AND roomno not in (SELECT room.roomno FROM reservation JOIN room ON room.roomno = reservation.roomno WHERE #{findStartDate} <= checkout AND #{findEndDate} >= checkin)
+   		]]>
+	</select>
+	<resultMap type="java.util.HashMap" id="stayRoomListDate">
+	    <result property="roomNo" column="ROOMNO" />
+	    <result property="price" column="PRICE" />
+	    <result property="bed" column="BED" />
+	    <result property="roomName" column="ROOMNAME" />
+	    <result property="stdPerson" column="STDPERSON" />
+	    <result property="overPerson" column="OVERPERSON" />
+	</resultMap>
+	
+	
+	<!-- 숙수 페이지에서 방 이미지 뽑기 -->
+	<select id="stayRoomImgDate" resultType="java.util.Map">
+	SELECT (uploadpath ||uuid|| '_' ||filename) as filename, stayno, roomno
+	FROM (
+	    SELECT uuid, memberid, uploadpath, filename, stayno, roomno,
+	           ROW_NUMBER() OVER (PARTITION BY roomno ORDER BY uuid) AS rn
+	    FROM attach
+	    WHERE stayno = (SELECT stayno FROM stay WHERE stayname = #{stayName}) AND roomno IS NOT NULL
+	)
+	WHERE rn = 1
+   	<![CDATA[
+		AND roomno not in (SELECT room.roomno FROM reservation JOIN room ON room.roomno = reservation.roomno WHERE #{findStartDate} <= checkout AND #{findEndDate} >= checkin)
+   	]]>
+	</select>
+	<resultMap type="java.util.HashMap" id="stayRoomImgDate">
+	    <result property="fileName" column="FILENAME" />
+	    <result property="stayNo" column="STAYNO" />
+	    <result property="roomNo" column="ROOMNO" />
+	</resultMap>
+	
+	
+	
+	
+	
+	
+	
+	<!-- 객실 페이지에서 정보 뽑기 -->
+	<select id="roomInfoPageList" resultType="java.util.Map">
+		SELECT 
+		(SELECT STAYNAME FROM STAY WHERE STAYNO = (select STAYNO from room where roomname=#{roomName})) AS STAYNAME, 
+		room.roomno as roomno ,
+		room.stayno as stayno, 
+		roomname, 
+		memberid,
+		stdperson, 
+		overperson, 
+		roominfo, 
+		bed, 
+		price, 
+		info, 
+		bathroom, 
+		kitchen, 
+		parking, 
+		babiqu, 
+		pet, 
+		terrace, 
+		pool, 
+		beamprojector
+		FROM ROOM 
+		LEFT JOIN ROOMOPTIONYN
+		ON ROOM.ROOMNO = ROOMOPTIONYN.ROOMNO
+		LEFT JOIN STAY
+		ON STAY.STAYNO = ROOM.STAYNO
+		WHERE ROOMNAME = #{roomName} AND ROOM.STAYNO = (SELECT STAYNO FROM STAY WHERE STAYNAME=#{stayName})
+	</select>
+	<resultMap type="java.util.HashMap" id="roomInfoPageList">
+	    <result property="stayName" column="STAYNAME" />
+	    <result property="memberId" column="MEMBERID" />
+	    <result property="bathroom" column="BATHROOM" />
+	    <result property="kitchen" column="KITCHEN" />
+	    <result property="parking" column="PARKING" />
+	    <result property="babiqu" column="BABIQU" />
+	    <result property="pet" column="PET" />
+	    <result property="terrace" column="TERRACE" />
+	    <result property="pool" column="POOL" />
+	    <result property="bed" column="BED" />
+	    <result property="beamprojector" column="BEAMPROJECTOR" />
+	</resultMap>
+	<!-- 객실 페이지에서 객실 사진 뽑아오기 -->
+	<select id="roomInfoPagePic" resultType="com.gogo.vo.FileuploadVO">
+		select stayno, roomno, (uploadpath ||uuid|| '_' ||filename) as filename from attach where stayno = (SELECT STAYNO FROM STAY WHERE STAYNAME=#{stayName}) and roomno = (select roomno from room where roomname=#{roomName})
+	</select>
+	
+	<select id="stayLocList" resultType="com.gogo.vo.StayVO">
+		select *
+			from(
+			    select t.*, rownum rn
+			    from
+			        (SELECT 
+			            TO_NUMBER(t.stayno) AS no, 
+			            t.stayno, t.stayname, t.stayloc, t.stayadress, t.stayinfo, t.staytype
+			            , t.badge, t.latitude, t.longitude, t.stayview, t.mainpic1
+			            , to_char(max(r.price), 'FM999,999,999') maxPrice, to_char(min(r.price), 'FM999,999,999') minPrice
+			            , max(r.overPerson) overperson, min(r.stdperson) stdperson
+			        FROM 
+			            stay t
+			        left JOIN 
+			            room r ON t.stayno = r.stayno
+			        group by t.stayno, t.stayname, t.stayloc, t.stayadress, t.stayinfo, t.staytype
+			                , t.badge, t.latitude, t.longitude, t.stayview, t.mainpic1
+			        having 1=1
+			        <if test='stayLoc != null and !"undefined".equals(stayLoc)'>
+				        and t.stayloc =  #{stayLoc}
+			        </if>
+			        <if test='stayType != null and !"undefined".equals(stayType)'>
+				        and t.staytype = #{stayType}
+			        </if>
+			        ORDER BY 
+			        no DESC) t)
+		where rn between 1 and 10
+	</select>
+	
+	
+	<!-- stayImg 페이지 stay 뽑기 -->
+	<select id="stayAllImg" resultType="java.util.Map">
+		select 
+		stayName,
+		stayloc || '/' || SUBSTR(stayadress, INSTR(stayadress, ' ') + 1, INSTR(stayadress, ' ', INSTR(stayadress, ' ') + 1) - INSTR(stayadress, ' ') - 1) AS stayLoc,
+		stayInfo,
+		mainPic1
+		from stay
+		where stayName = #{stayName}
+	</select>
+	<resultMap type="java.util.HashMap" id="stayAllImg">
+	    <result property="stayName" column="STAYNAME" />
+	    <result property="stayLoc" column="STAYLOC" />
+	    <result property="stayInfo" column="STAYINFO" />
+	    <result property="mainPic1" column="MAINPIC1" />
+	</resultMap>
+	
+	<!-- stayImg 페이지 room 뽑기 -->
+	<select id="roomAllImg" resultType="java.util.Map">
+		select (uploadpath || uuid || '_' || filename) as fileName, room.roomno as roomno, room.stayno as stayno, roomname
+		from attach
+		join room
+		on room.roomno = attach.roomno
+		where attach.roomno is not null and attach.stayno = (select stayNo from stay where stayName = #{stayName})
+	</select>
+	<resultMap type="java.util.HashMap" id="roomAllImg">
+	    <result property="fileName" column="FILENAME" />
+	    <result property="roomno" column="ROOMNO" />
+	    <result property="stayno" column="STAYNO" />
+	    <result property="roomname" column="ROOMNAME" />
+	</resultMap>
+</mapper>

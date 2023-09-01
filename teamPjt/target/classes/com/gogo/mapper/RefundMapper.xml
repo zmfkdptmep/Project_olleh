@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gogo.mapper.RefundMapper">
+
+
+	<insert id="insertRefund">
+		insert into refund values(refundseq.nextval, #{paymentNo}, #{amount}, sysdate, #{fee})
+	</insert>
+	
+	<select id="selectOne" resultType="com.gogo.vo.RefundVO">
+		select * from refund where paymentNo = #{paymentNo}
+	</select>
+
+</mapper>

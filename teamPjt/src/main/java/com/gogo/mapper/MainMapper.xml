@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  				<!-- 경로 + xml 파일명 -->
+<mapper namespace="com.gogo.mapper.MainMapper">
+	
+	<!-- stay 등록 (테스트)-->
+	<insert id="insert">
+		insert into stay (stayno, memberid, stayname, stayloc, stayadress
+						, stayinfo, staytype, badge, latitude, longitude)
+		values (stayseq.nextval, #{memberId}, #{stayName}, #{stayLoc}, #{stayAdress}
+				,#{stayInfo}, #{stayType}, #{badge}, #{latitude}, #{longitude})
+	</insert>
+
+	<!-- 사진 등록 (테스트)-->
+	<insert id="insertPhoto">
+		insert into attach (uuid, uploadpath, filename, stayno, roomno)
+		values (#{uuid}, #{uploadPath}, #{fileName}, #{stayNo}, #{roomNo})
+	</insert>
+	
+	<!-- room 등록 -->
+	<insert id="insertRoom">
+		<selectKey keyProperty="roomNo" order="BEFORE" resultType="String">
+			select roomseq.nextval from dual
+		</selectKey>
+		insert into room (roomno, stayno, roomname, stdperson
+						, overperson, roominfo, price, info)
+		values (#{roomNo}, #{stayNo}, #{roomName}, #{stdPerson}
+				, #{overPerson}, #{roomInfo}, #{price}, #{info})
+	</insert>
+	
+	<!-- room 옵션 등록 -->
+	<insert id="insertRoomOption">
+		insert into roomoptionyn (roomno, stayno, bathroom, kitchen, parking
+						, babiqu, pet, terrace, pool, bed, beamprojector)
+		values (#{roomNo}, #{stayNo}, #{bathroom}, #{kitchen}, #{parking}
+						, #{babiqu}, #{pet}, #{terrace}, #{pool}, #{bed}, #{beamProjector})
+	</insert>
+	
+	<!-- 스테이 등록 -->
+	<insert id="insertStay">
+		<selectKey keyProperty="stayNo" order="BEFORE" resultType="String">
+			select stayseq.nextval from dual
+		</selectKey>
+		insert into stay (stayno, memberid, stayname, stayloc, stayadress
+						, stayinfo, staytype, badge, latitude, longitude, stayview
+						, postnum, detailads, refs, registrationyn)
+		values (#{stayNo}, #{memberId}, #{stayName}, #{stayLoc}, #{stayAdress}
+				, #{stayInfo}, #{stayType}, #{badge}, #{latitude}, #{longitude}, #{stayView}
+				, #{postNum}, #{detailAds}, #{refs}, #{registrationYN})
+	</insert>
+	
+	<!-- 스테이 getOne -->
+	<select id="getStayOne" resultType="com.gogo.vo.StayVO">
+		select * from stay where stayno = #{stayNo}
+	</select>
+	
+	<update id="updateStay">
+		update stay
+		set stayname = #{stayName}
+		, stayloc = #{stayLoc}
+		, stayadress = #{stayAdress}
+		, stayinfo = #{stayInfo}
+		, stayType = #{stayType}
+		, badge = #{badge}
+		, latitude = #{latitude}
+		, longitude = #{longitude}
+		, stayview = #{stayView}
+		, postnum = #{postNum}
+		, detailads = #{detailAds}
+		, refs = #{refs}
+		, registrationYN = #{registrationYN}
+		where stayno = #{stayNo}
+	</update>
+	
+	<update id="updateStayMainPic">
+		update stay
+		set mainpic1 = #{mainPic1}
+		where stayno = #{stayNo}
+	</update>
+	
+	<select id="getRoomOne" resultType="com.gogo.vo.RoomVO">
+		select * from room where roomno = #{roomNo}
+	</select>
+	
+	<select id="getRoomOption" resultType="com.gogo.vo.RoomOptionVO">
+		select * from roomoptionyn where roomno = #{roomNo}
+	</select>
+	
+	<update id="updateRoom">
+		update room
+		set roomName = #{roomName}
+					, info = #{info}
+					, roominfo = #{roomInfo}
+					, stdperson = #{stdPerson}
+					, overperson = #{overPerson}
+					, price = #{price}
+		where roomno = #{roomNo}
+	</update>
+	
+	<update id="updateRoomOption">
+		update roomoptionyn
+		set bathroom = #{bathroom}
+					, kitchen = #{kitchen}
+					, parking = #{parking}
+					, babiqu = #{babiqu}
+					, pet = #{pet}
+					, terrace = #{terrace}
+					, pool = #{pool}
+					, bed = #{bed}
+					, beamprojector = #{beamProjector}
+		where roomno = #{roomNo}
+	</update>
+	
+	<select id="getMainList" resultType="com.gogo.vo.StayVO">
+		select *
+		from(
+		    select t.*, rownum rn
+		    from
+		        (SELECT 
+		            TO_NUMBER(t.stayno) AS no, 
+		            t.stayno, t.stayname, t.stayloc, t.stayadress, t.stayinfo, t.staytype
+		            , t.badge, t.latitude, t.longitude, t.stayview, t.mainpic1
+		            , to_char(max(r.price), 'FM999,999,999') maxPrice, to_char(min(r.price), 'FM999,999,999') minPrice
+		        FROM 
+		            stay t
+		        left JOIN 
+		            room r ON t.stayno = r.stayno
+		        group by t.stayno, t.stayname, t.stayloc, t.stayadress, t.stayinfo, t.staytype
+		                , t.badge, t.latitude, t.longitude, t.stayview, t.mainpic1
+		        ORDER BY 
+		        no DESC) t)
+		where rn between 1 and 8
+	</select>
+	
+	<select id="getStayNo" resultType="String">
+		select stayno from stay where memberid = #{memberId}
+	</select>
+	
+	<select id="getPopStayList" resultType="com.gogo.vo.StayVO">
+		select *
+		from(
+		    select t.*, rownum rn
+		    from(
+		        SELECT s.stayno, s.stayname
+		                , s.memberid, s.stayloc, s.stayadress, s.stayinfo, s.staytype
+		                , s.badge, s.latitude, s.longitude, s.mainpic1, s.stayview, COUNT(ls.stayNo) AS likeCount
+		                , to_char(max(r.price), 'FM999,999,999') maxPrice, to_char(min(r.price), 'FM999,999,999') minPrice
+		        FROM stay s
+		        LEFT JOIN likestay ls ON s.stayNo = ls.stayNo
+		        left JOIN room r ON s.stayno = r.stayno
+		        GROUP BY s.stayNo, s.stayname, s.memberid, s.stayloc, s.stayadress, s.stayinfo
+		                , s.staytype, s.badge, s.latitude, s.longitude, s.mainpic1, s.stayview
+		        ORDER BY likeCount DESC) t)
+		where rn between 1 and 8
+	</select>
+	
+</mapper>
