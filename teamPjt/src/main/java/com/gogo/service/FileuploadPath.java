@@ -6,6 +6,6 @@ import org.springframework.stereotype.Component;
 public class FileuploadPath {
 
 	
-	public static String dirPath = "D:\\jungang_project\\teamProjet\\teamPjt\\src\\main\\webapp\\resources\\images\\";
+	public static String dirPath = "C:\\Users\\user\\git\\Project_olleh\\teamProjet\\teamPjt\\src\\main\\webapp\\resources\\images\\";
 	
 }
