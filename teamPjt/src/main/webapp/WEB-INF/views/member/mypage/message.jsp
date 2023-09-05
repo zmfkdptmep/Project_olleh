@@ -74,7 +74,7 @@
 		</div>
 	</div>
 
-	<script src="/static/js/common.js"></script>
+	
 	<div id="__next" data-reactroot="">
 		<div>
 			<div class=""></div>

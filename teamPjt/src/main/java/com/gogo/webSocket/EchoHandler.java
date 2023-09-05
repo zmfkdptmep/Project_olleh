@@ -3,6 +3,7 @@ package com.gogo.webSocket;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -111,18 +112,16 @@ public class EchoHandler extends TextWebSocketHandler{
             String roomId = (String) session.getAttributes().get("roomId");
             logger.info("{}로 부터 {}받음, roomId: {}", session.getId(), message.getPayload(), roomId);
             List<WebSocketSession> sessionsInRoom = roomSessions.get(roomId);
-            for (WebSocketSession sess : sessionsInRoom) {
-            	
-            	if(sess != null && !"".equals(sess)) {
-            		if(sess.isOpen()) {
-            			
-            			sess.sendMessage(new TextMessage(message.getPayload()));
-            		} else {
-            			
-            			sessionsInRoom.remove(sess);
-            		}
-            	}
-            	
+            Iterator<WebSocketSession> iterator = sessionsInRoom.iterator();
+            while (iterator.hasNext()) {
+                WebSocketSession sess = iterator.next();
+                if(sess != null && !"".equals(sess)) {
+                    if(sess.isOpen()) {
+                        sess.sendMessage(new TextMessage(message.getPayload()));
+                    } else {
+                        iterator.remove();  // 안전하게 세션을 제거
+                    }
+                }
             }
 
             // 메시지가 도착할 때마다 메시지를 저장

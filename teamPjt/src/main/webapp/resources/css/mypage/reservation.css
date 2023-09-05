@@ -1,26 +1,3 @@
-@charset "utf-8";@font-face {
-    font-family: SpoqaHanSans;
-    font-weight: 100;
-    src: url(/_next/static/media/SpoqaHanSansRegular.50d57b70.ttf) format("truetype"),url(/_next/static/media/SpoqaHanSansRegular.328aee46.woff) format("woff"),url(/_next/static/media/SpoqaHanSansRegular.ccdc4420.woff2) format("woff2")
-}
-
-@font-face {
-    font-family: SpoqaHanSans;
-    font-weight: 300;
-    src: url(/_next/static/media/SpoqaHanSansRegular.50d57b70.ttf) format("truetype"),url(/_next/static/media/SpoqaHanSansRegular.328aee46.woff) format("woff"),url(/_next/static/media/SpoqaHanSansRegular.ccdc4420.woff2) format("woff2")
-}
-
-@font-face {
-    font-family: SpoqaHanSans;
-    font-weight: 400;
-    src: url(/_next/static/media/SpoqaHanSansRegular.50d57b70.ttf) format("truetype"),url(/_next/static/media/SpoqaHanSansRegular.328aee46.woff) format("woff"),url(/_next/static/media/SpoqaHanSansRegular.ccdc4420.woff2) format("woff2")
-}
-
-@font-face {
-    font-family: SpoqaHanSans;
-    font-weight: 500;
-    src: url(/_next/static/media/SpoqaHanSansRegular.50d57b70.ttf) format("truetype"),url(/_next/static/media/SpoqaHanSansRegular.328aee46.woff) format("woff"),url(/_next/static/media/SpoqaHanSansRegular.ccdc4420.woff2) format("woff2")
-}
 
 @font-face {
     font-family: SpoqaHanSans;

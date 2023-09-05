@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		console.log(msg);
 		// btnWhere 클릭되면 모달창 보이기
 		btnWhere.addEventListener('click', function(){
-	        location.href='/reserved/android'
+			document.querySelector("#whereModal").style.display='';
 	    })
 	
 	    // closeBtn 클릭되면 모달창 가리기

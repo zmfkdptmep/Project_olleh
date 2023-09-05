@@ -280,8 +280,21 @@
 		<scope>provided</scope>
 	</dependency>
 		
-	
+	    <!-- 챗봇을 위한 RestTemplate -->
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-web</artifactId>
+        <version>${org.springframework-version}</version>
+    </dependency>
 
+	<!-- https://mvnrepository.com/artifact/org.json/json -->
+	<dependency>
+	    <groupId>org.json</groupId>
+	    <artifactId>json</artifactId>
+	    <version>20230618</version>
+	</dependency>
+	
+			
 			
 	</dependencies>
 	

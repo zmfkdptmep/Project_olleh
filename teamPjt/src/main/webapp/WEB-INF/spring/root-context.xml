@@ -35,6 +35,9 @@
 		<property name="dataSource" ref="dataSource"></property>
 	</bean>
 	
+	
+	
+	
 	<mybatis-spring:scan base-package="com.gogo.mapper"/>
 
 	<!-- File Upload 를 위한 세팅 -->
