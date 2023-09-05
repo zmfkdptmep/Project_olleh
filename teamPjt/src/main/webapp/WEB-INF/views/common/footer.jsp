@@ -75,6 +75,19 @@
 <!-- bootstrap script -->
 
 <button id="msgBtn" class="custom-button-1"></button>
+
+	<!-- chat modal -->
+	<div class="modalOverlay" id="chatModal" style="display: none;">
+		<div class="modalWrapper">
+			<div class="modalInner" style="width:1018px; height:750px;">
+	
+					<jsp:include page="/WEB-INF/views/chat/Chatbot.jsp"/>
+			</div>
+		</div>
+	</div>
+
+
+
 <script>
 	
 	$(function(){
@@ -89,9 +102,15 @@
 				return false;
 			} else {
 				
-				location.href='/chat/chat';
+				document.querySelector("#chatModal").style.display='';
 				
 			}
+			
+		});
+		
+		$("#closeChatBot").click(function(){
+			
+			document.querySelector("#chatModal").style.display='none';
 			
 		});
 		

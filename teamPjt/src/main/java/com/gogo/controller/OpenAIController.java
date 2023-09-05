@@ -5,6 +5,7 @@ import com.gogo.service.OpenAIService;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,12 +32,13 @@ public class OpenAIController {
     @PostMapping("/ask")
     @ResponseBody
     public Map<String, String> askChatbot(@RequestBody String prompt) {
-    	
+    	JSONObject contentJson = new JSONObject(prompt);
     	Map<String, String> response = new HashMap<>();
     	
     	String result = openAIService.askGPT(prompt,"true");
     	
-    	System.out.println("result============ : "+ result);
+    	System.out.println("질문 : "+ contentJson.getString("message"));
+    	System.out.println("답변 : "+ result);
     	
     	response.put("message", result);
     	

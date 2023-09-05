@@ -14,7 +14,7 @@ import org.json.JSONArray;
 public class OpenAIServiceImpl implements OpenAIService {
     
     private static final String OPENAI_API_ENDPOINT = "https://api.openai.com/v1/chat/completions";
-    private static final String YOUR_OPENAI_API_KEY = "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"; // 여기에 실제 API 키를 입력하세요
+    private static final String YOUR_OPENAI_API_KEY = "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"; // 여기에 실제 API 키를 입력하세요
 
     @Override
     public String askGPT(String prompt, String isJson) {
@@ -59,6 +59,15 @@ public class OpenAIServiceImpl implements OpenAIService {
                 JSONObject answer = firstChoice.getJSONObject("message");
                 String correctString = new String(answer.getString("content").getBytes("ISO-8859-1"), "UTF-8");
                 
+                // 파싱이 잘 안된 경우 한번 더 파싱 (JSON => String)
+                if (correctString.startsWith("{") && correctString.endsWith("}")) {
+                    JSONObject contentJson = new JSONObject(correctString);
+                    if (contentJson.has("message")) {
+                    	correctString = contentJson.getString("message");
+                    }
+                }
+                
+                
                 System.out.println("correctString ========== "+correctString);
                 
                 
@@ -73,6 +82,11 @@ public class OpenAIServiceImpl implements OpenAIService {
             return "Error: " + e.getMessage();
         }
     }
+    
+
+
+    
+
     
 
 }
