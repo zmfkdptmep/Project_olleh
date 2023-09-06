@@ -1,5 +1,6 @@
 package com.gogo.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -14,7 +15,8 @@ import org.json.JSONArray;
 public class OpenAIServiceImpl implements OpenAIService {
     
     private static final String OPENAI_API_ENDPOINT = "https://api.openai.com/v1/chat/completions";
-    private static final String YOUR_OPENAI_API_KEY = "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"; // 여기에 실제 API 키를 입력하세요
+    @Value("${apiKey}")
+    private String YOUR_OPENAI_API_KEY; // 여기에 실제 API 키를 입력하세요
 
     @Override
     public String askGPT(String prompt, String isJson) {

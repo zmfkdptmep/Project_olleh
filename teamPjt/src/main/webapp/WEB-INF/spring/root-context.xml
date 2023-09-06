@@ -62,8 +62,11 @@
 		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 		<property name="dataSource" ref="dataSource"></property>
 	</bean>
-
 	
+	<!-- OpenAI api key를 프로젝트 외부에 저장하기 위한 설정 -->
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+    <property name="location" value="file:C:/secrets.properties"/>
+	</bean>
 	
 	
 	<tx:annotation-driven />
