@@ -45,7 +45,8 @@ document.addEventListener('DOMContentLoaded', function() {
 	
 	function initInviteSocket(targetMemberId) {
     	
-        let socketInvite = new SockJS("http://localhost:8080/echo?targetMemberId=" + targetMemberId);
+		let serverAddress = `${window.location.protocol}//${window.location.hostname}:8080`;
+		let socketInvite = new SockJS(`${serverAddress}/echo?targetMemberId=${targetMemberId}`);
 		
 	var stayNoMsg = '';
         socketInvite.onmessage = function(event) {

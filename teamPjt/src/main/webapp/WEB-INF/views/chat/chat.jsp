@@ -170,9 +170,10 @@
     
     function connection(){
     	
+    	let serverAddress = `${window.location.protocol}//${window.location.hostname}:8080`;
+    	sock = new SockJS(`${serverAddress}/echo?roomId=${roomId}&socketType=chat&stayNoMsg=${stayNoMsg}`);
     	
-    	sock = new SockJS(`http://localhost:8080/echo?roomId=${roomId}&socketType=chat&stayNoMsg=${stayNoMsg}`);
-	    console.log('sock : ', sock);
+    	console.log('sock : ', sock);
 	    sock.onmessage = onMessage;
 	    sock.onclose = onClose;
     	
