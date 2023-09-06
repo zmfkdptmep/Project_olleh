@@ -28,19 +28,41 @@
             line-height:50px;
         }
             /* 코드블록 스타일 */
-    pre {
-        background-color: #f8f8f8;  /* 배경색 */
-        border: 1px solid #ccc;     /* 테두리 */
-        padding: 8px 12px;          /* 내부 여백 */
-        overflow-x: auto;           /* 긴 코드의 경우 스크롤바 생성 */
-        border-radius: 4px;         /* 둥근 테두리 */
-        max-width: 100%;            /* 최대 너비 */
-    }
-
-    code {
-        font-family: 'Courier New', Courier, monospace; /* 고정 너비 글꼴 */
-        color: #333;                                  /* 글자색 */
-    }
+	    pre {
+	        background-color: #f8f8f8;  /* 배경색 */
+	        border: 1px solid #ccc;     /* 테두리 */
+	        padding: 8px 12px;          /* 내부 여백 */
+	        overflow-x: auto;           /* 긴 코드의 경우 스크롤바 생성 */
+	        border-radius: 4px;         /* 둥근 테두리 */
+	        max-width: 100%;            /* 최대 너비 */
+	    }
+	
+	    code {
+	        font-family: 'Courier New', Courier, monospace; /* 고정 너비 글꼴 */
+	        color: #333;                                  /* 글자색 */
+	    }
+    
+		.greeting-buttons {
+		    
+		    justify-content: space-between;
+		    margin-top: 10px;
+		}
+		
+		.greeting-buttons button {
+		    padding: 10px;
+		    margin: 0 5px;
+		    border: none;
+		    cursor: pointer;
+		    background-color: #e6f7ff;
+		    border-radius: 5px;
+		    transition: background-color 0.2s;
+		}
+		
+		.greeting-buttons button:hover {
+		    background-color: #cce7ff;
+		}
+    
+    
     </style>
 </head>
 <body>
@@ -53,7 +75,7 @@
 </div>
 
 <input type="text" id="userInput" placeholder="메세지를 입력하세요" style="width: 325px; border:1px solid #f2f2f2;">
-<button onclick="sendMessage()" style="padding:22px;">전송</button>
+<button id="sendQ" onclick="sendMessage()" style="padding:22px;">전송</button>
 
 <script>
 
@@ -157,6 +179,52 @@
 
         input.value = '';
     }
+    
+    function showGreeting() {
+        appendMessage('bot', '안녕하세요! 어떻게 도와드릴까요?');
+
+        const chatbox = document.getElementById('chatbox');
+        
+        const buttonsDiv = document.createElement('div');
+        buttonsDiv.className = 'greeting-buttons';
+
+        const buttonTitles = ['호스트와 1:1 대화', 'bot에게 묻기', '스테이 구경하기'];
+
+        buttonTitles.forEach(title => {
+            const button = document.createElement('button');
+            button.innerText = title;
+            button.addEventListener('click', function() {
+                handleGreetingButton(title);
+            });
+            buttonsDiv.appendChild(button);
+        });
+
+        chatbox.appendChild(buttonsDiv);
+    }
+
+    function handleGreetingButton(title) {
+        switch (title) {
+            case '호스트와 1:1 대화':
+                location.href='/member/mypage/message';
+                break;
+            case 'bot에게 묻기':
+            	appendMessage('bot', '네 ${sessionScope.memberId}님 무엇을 도와드릴까요?');
+                $('#userInput').css('display','');
+                $('#sendQ').css('display','');
+                break;
+            case '스테이 구경하기':
+                location.href='/stay/list';
+                break;
+        }
+    }
+    
+    window.onload = function() {
+        showGreeting();
+        $('#userInput').css('display','none');
+        $('#sendQ').css('display','none');
+        
+    };
+    
 </script>
 
 </body>

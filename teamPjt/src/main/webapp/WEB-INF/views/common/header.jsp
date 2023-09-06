@@ -236,11 +236,16 @@ document.addEventListener('DOMContentLoaded', function() {
 	
 	// 사이드바가 켜져있는 상태에서 화면이 커지면 사이드바를 닫기 위한 함수
    function sideMenuClose(){
-	   if(window.innerWidth >= 1024){
+		
+		
+	   
+	   if(window.innerWidth >= 1024 && '${sessionScope.memberId}' != ""){
 	   	document.querySelector("#sideMenu").style.display='none';
 	   // 768-1024 사이즈에서 사이드메뉴를 보여주기 위해 / 새로 만든 이미지를 사이즈가 커지면 없애기 위한 코드
 	   	sideMenuMiddle.style.display='none';
 	   }
+	   
+	   
 	   if(window.innerWidth <= 1023){
 		   // 768-1024사이즈에서 사이드메뉴를 보여주는 코드
 		   sideMenuMiddle.style.display='block';

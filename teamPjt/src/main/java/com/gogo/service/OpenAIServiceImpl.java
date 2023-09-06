@@ -14,7 +14,7 @@ import org.json.JSONArray;
 public class OpenAIServiceImpl implements OpenAIService {
     
     private static final String OPENAI_API_ENDPOINT = "https://api.openai.com/v1/chat/completions";
-    private static final String YOUR_OPENAI_API_KEY = "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"; // 여기에 실제 API 키를 입력하세요
+    private static final String YOUR_OPENAI_API_KEY = "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"; // 여기에 실제 API 키를 입력하세요
 
     @Override
     public String askGPT(String prompt, String isJson) {
