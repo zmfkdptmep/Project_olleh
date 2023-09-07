@@ -26,6 +26,7 @@
         .bot {
             background-color: #fff2e6;
             line-height:50px;
+            text-align: left;
         }
             /* 코드블록 스타일 */
 	    pre {
@@ -35,11 +36,13 @@
 	        overflow-x: auto;           /* 긴 코드의 경우 스크롤바 생성 */
 	        border-radius: 4px;         /* 둥근 테두리 */
 	        max-width: 100%;            /* 최대 너비 */
+	        font-size:1.4em;
 	    }
 	
 	    code {
-	        font-family: 'Courier New', Courier, monospace; /* 고정 너비 글꼴 */
-	        color: #333;                                  /* 글자색 */
+	        font-family: 'Lato', sans-serif; /* 고정 너비 글꼴 */
+	        color: #333;                     /* 글자색 */
+	        text-align: left;
 	    }
     
 		.greeting-buttons {

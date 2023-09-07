@@ -242,7 +242,7 @@
 		
 	    if(!wantExit) {
 		    sock = null;
-	        console.log('님 컴이 꾸져서 연결이 끊겼습니다... 재접속합니다');
+	        console.log('알 수 없는 이유로 연결이 끊겨 세션에 재접속합니다.');
 	        setTimeout(connection, 2000);
 	    } else {
 	    	
